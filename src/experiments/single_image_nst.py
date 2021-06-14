@@ -1,3 +1,17 @@
+# All experiments should be run from the root directory
+# so that the src directory can be found by imports
+# an alternative is to install the src package
+# ------------
+# setup
+# ------------
+import os
+import sys
+
+sys.path.append(os.getcwd())
+
+# ------------
+# imports
+# ------------
 from argparse import ArgumentParser
 
 import pytorch_lightning as pl
