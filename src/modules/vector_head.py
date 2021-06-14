@@ -3,7 +3,7 @@ import torch.nn as nn
 from einops.layers.torch import Reduce
 
 
-class ClassificationHead(nn.Module):
+class VectorHead(nn.Module):
     """
     Classification head of a the model. 
 
@@ -13,9 +13,8 @@ class ClassificationHead(nn.Module):
     M is equal to (`dim`). The input tensor is first passed through
     layer norm. Afterwards a mean over the patch dimension (L) is taken
     to obtain a tensor of shape B x M. This B x M tensor is then projected
-    using a linear layer into a B x 1 tensor where 1 is the number of classes
-    to be predicted (`num_classes`). Finally a softmax over the 1 dimension
-    is taken and passed as the output.
+    using a linear layer into a B x M tensor where M is equal to (`dim`).
+    Finally a Tanh activation is applied.
 
     References
     ----------
@@ -29,14 +28,14 @@ class ClassificationHead(nn.Module):
         dim : int 
             last dimension of the tensor, will be the embedding dimension.
         """
-        super(ClassificationHead, self).__init__()
+        super(VectorHead, self).__init__()
         self.model = nn.Sequential(
             nn.LayerNorm(dim),
             Reduce("b l m -> b m", reduction="mean"),
-            nn.Linear(dim, 1),
-            nn.Sigmoid()
+            nn.Linear(dim, dim),
+            nn.Tanh(),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # B x L x M -> B x T
+        # B x L x M -> B x M
         return self.model(x)

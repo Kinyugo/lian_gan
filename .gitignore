@@ -148,7 +148,8 @@ checkpoints/
 .vscode/
 
 # Directory for the data
-data/
+data/*
+!data/single_image_nst
 
 # Directory for miscellaneous things
 src/misc/

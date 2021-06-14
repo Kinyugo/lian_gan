@@ -6,7 +6,7 @@ from src.modules import (
     PreNormResidual,
     MatMulTransform,
     FeedForward,
-    ClassificationHead,
+    VectorHead,
 )
 
 
@@ -43,7 +43,7 @@ def make_n_blocks(
     return nn.Sequential(*blocks)
 
 
-class Discriminator(nn.Module):
+class VectorDiscriminator(nn.Module):
     """
     Defines a discriminator for the image styling GAN. 
 
@@ -57,9 +57,8 @@ class Discriminator(nn.Module):
     M is the embedding dimension. 
     The B x L x M tensor is then passed through `num_blocks` `DiscriminatorBlock`(s)
     to extract features of the same shape. 
-    The B x L x M features are then passed through a `ClassificationHead` to obtain
-    the final predictions of shape B x T, where T is the number of target classes
-    (`num_classes`).
+    The B x L x M features are then passed through a `Vector` to obtain
+    the final projections of shape B x M, where M is the embedding dimension.
     """
 
     def __init__(
@@ -93,20 +92,20 @@ class Discriminator(nn.Module):
         dropout : float
             dropout probability
         """
-        super(Discriminator, self).__init__()
+        super(VectorDiscriminator, self).__init__()
 
         self.patch_embedding = PatchEmbedding(patch_size, channels, dim)
         self.discriminator_blocks = make_n_blocks(
             num_blocks, image_size, patch_size, dim, ff_dim, norm, dropout
         )
-        self.classification_head = ClassificationHead(dim)
+        self.vector_head = VectorHead(dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # B x C x H x W -> B x L x M
         embeds = self.patch_embedding(x)
         # B x L x M -> B x L x M
         features = self.discriminator_blocks(embeds)
-        # B x L x M -> B x T
-        predictions = self.classification_head(features)
+        # B x L x M -> B x M
+        projections = self.vector_head(features)
 
-        return predictions
+        return projections
