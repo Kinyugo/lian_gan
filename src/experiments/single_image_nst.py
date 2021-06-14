@@ -14,9 +14,19 @@ sys.path.append(os.getcwd())
 # ------------
 from argparse import ArgumentParser
 
+import gdown
 import pytorch_lightning as pl
 from src.data import NSTDataModule
 from src.models import LitNSTGAN
+
+
+def prepare_data() -> None:
+    # download data
+    url = "https://drive.google.com/uc?id=1DxZbO5jN6FFDRoxLdOVjPbVvZMZwrO-l"
+    output = os.path.join("data", "single_image_nst.zip")
+    md5_hash = "30975f520a597107aa97f1396b4585ad"
+
+    gdown.cached_download(url, output, md5=md5_hash, postprocess=gdown.extractall)
 
 
 def cli_main():
@@ -44,6 +54,8 @@ def cli_main():
     # ------------
     # data
     # ------------
+    prepare_data()
+
     datamodule = NSTDataModule(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
